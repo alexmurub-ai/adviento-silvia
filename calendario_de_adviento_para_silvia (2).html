@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendario de Adviento de Silvia ✨</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Playfair Display (serif elegante) y Nunito (sans-serif cálida) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome para iconos navideños y de interfaz -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Configuración incrustada (se actualiza automáticamente al descargar el HTML desde el Modo Admin) -->
+  <script id="embedded-calendar-config" type="application/json">
+    {
+      "exportedAt": 0,
+      "customCover": null,
+      "days": null
+    }
+  </script>
+
+  <style>
+    :root {
+      --burgundy-dark: #2a080c;
+      --burgundy-rich: #4a0e17;
+      --pine-deep: #0f2d1e;
+      --cream-parchment: #fdf6e9;
+      --gold-classic: #d4af37;
+      --gold-bright: #f5d76e;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: radial-gradient(circle at top center, #4a0e17 0%, #2a080c 52%, #170406 100%);
+      color: var(--cream-parchment);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .font-serif-elegant {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    /* Lienzos de nieve y confeti dorado */
+    #snow-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 60;
+    }
+
+    /* Luces navideñas cálidas parpadeando suavemente */
+    @keyframes warmTwinkle {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: drop-shadow(0 0 8px currentColor);
+      }
+      50% {
+        opacity: 0.4;
+        transform: scale(0.84);
+        filter: drop-shadow(0 0 2px currentColor);
+      }
+    }
+
+    .light-bulb {
+      animation: warmTwinkle 2.8s infinite ease-in-out;
+    }
+    .light-bulb:nth-child(odd) { animation-delay: 0.75s; }
+    .light-bulb:nth-child(3n) { animation-delay: 1.5s; }
+
+    /* Marco dorado de la portada */
+    .hero-frame {
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.72),
+        0 0 0 2px rgba(245, 215, 110, 0.55),
+        0 0 36px rgba(212, 175, 55, 0.22);
+    }
+
+    /* Estilos de las 24 puertas navideñas */
+    .door-card {
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+    }
+    .door-card:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .door-available-red {
+      background: linear-gradient(145deg, #751320 0%, #4a0e17 100%);
+      border: 2px solid rgba(245, 215, 110, 0.72);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 242, 200, 0.32);
+    }
+
+    .door-available-green {
+      background: linear-gradient(145deg, #16442e 0%, #0f2d1e 100%);
+      border: 2px solid rgba(245, 215, 110, 0.68);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 242, 200, 0.28);
+    }
+
+    .door-day24-gold {
+      background: linear-gradient(135deg, #f5d76e 0%, #d4af37 45%, #8f6b12 100%);
+      border: 2.5px solid #fff3c4;
+      box-shadow: 0 0 32px rgba(245, 215, 110, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+
+    .door-opened {
+      background: linear-gradient(145deg, #3a0d14 0%, #220609 100%);
+      border: 2px solid #f5d76e;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.35), inset 0 0 16px rgba(245, 215, 110, 0.14);
+    }
+
+    .door-locked {
+      background: linear-gradient(145deg, rgba(42, 12, 17, 0.84) 0%, rgba(22, 6, 9, 0.92) 100%);
+      border: 1.5px solid rgba(212, 175, 55, 0.28);
+      backdrop-filter: blur(5px);
+    }
+
+    .door-locked-day24 {
+      background: linear-gradient(145deg, rgba(78, 52, 14, 0.68) 0%, rgba(36, 16, 12, 0.92) 100%);
+      border: 2px solid rgba(245, 215, 110, 0.55);
+      box-shadow: 0 0 22px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Lazos dorados en puertas listas para abrir */
+    .ribbon-v {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 12px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, rgba(212, 175, 55, 0.12), rgba(245, 215, 110, 0.34), rgba(212, 175, 55, 0.12));
+      pointer-events: none;
+    }
+
+    .ribbon-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 12px;
+      transform: translateY(-50%);
+      background: linear-gradient(180deg, rgba(212, 175, 55, 0.12), rgba(245, 215, 110, 0.34), rgba(212, 175, 55, 0.12));
+      pointer-events: none;
+    }
+
+    /* Sello dorado de lacre */
+    .wax-seal {
+      background: radial-gradient(circle at 35% 35%, #f5d76e 0%, #d4af37 65%, #8c6914 100%);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.55);
+    }
+
+    /* Animación de temblor para casilla bloqueada o PIN incorrecto */
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px) rotate(-1.5deg); }
+      40% { transform: translateX(6px) rotate(1.5deg); }
+      60% { transform: translateX(-4px) rotate(-1deg); }
+      80% { transform: translateX(4px) rotate(1deg); }
+    }
+    .shake-anim {
+      animation: shakeAnim 0.42s ease-in-out;
+    }
+
+    /* Animación de entrada de modal */
+    @keyframes modalPop {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-pop {
+      animation: modalPop 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Estilo Cupón / Vale Dorado */
+    .golden-coupon {
+      background: linear-gradient(135deg, #fffaf0 0%, #faebc8 52%, #f5d76e 100%);
+      border: 2px dashed #9e7715;
+      position: relative;
+    }
+    .golden-coupon::before,
+    .golden-coupon::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background-color: #fdf6e9;
+      transform: translateY(-50%);
+      border: 2px solid #9e7715;
+    }
+    .golden-coupon::before {
+      left: -12px;
+      border-left-color: transparent;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+    }
+    .golden-coupon::after {
+      right: -12px;
+      border-right-color: transparent;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+    }
+
+    /* Efecto perforado en la Tarjeta de Embarque */
+    .ticket-notch-left,
+    .ticket-notch-right {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      background-color: #fdf6e9;
+      border-radius: 9999px;
+      top: 56%;
+      transform: translateY(-50%);
+      z-index: 10;
+    }
+    .ticket-notch-left { left: -13px; }
+    .ticket-notch-right { right: -13px; }
+
+    /* Barra de desplazamiento personalizada */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #21060a; }
+    ::-webkit-scrollbar-thumb { background: #7a1423; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+  </style>
+</head>
+<body class="antialiased selection:bg-[#f5d76e] selection:text-[#2a080c]">
+
+  <!-- Lienzo de nieve sutil -->
+  <canvas id="snow-canvas"></canvas>
+
+  <!-- Lienzo de destellos y confeti dorado al abrir una casilla -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Contenedor de avisos animados (sin alert ni confirm) -->
+  <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-11/12 max-w-md"></div>
+
+  <!-- ===================================================================== -->
+  <!-- BARRA SUPERIOR DE ADMINISTRADOR (Visible solo tras introducir PIN 7744) -->
+  <!-- ===================================================================== -->
+  <div id="admin-banner" class="hidden sticky top-0 z-40 bg-gradient-to-r from-[#210609] via-[#4a0e17] to-[#0f2d1e] border-b-2 border-[#d4af37] shadow-2xl px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#f5d76e] to-[#d4af37] text-[#2a080c] font-bold shadow">
+          <i class="fa-solid fa-crown"></i>
+        </span>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-[#f5d76e] font-extrabold">Modo Administrador Activo</p>
+          <p class="text-[11px] text-[#fdf6e9]/80">Los cambios se guardan al instante en tu navegador</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- 1. Interruptor Modo Vista Previa -->
+        <label class="inline-flex items-center cursor-pointer bg-black/45 border border-[#d4af37]/60 rounded-full px-3.5 py-1.5 gap-2.5 hover:bg-black/65 transition">
+          <input type="checkbox" id="preview-mode-toggle" class="sr-only peer" />
+          <div class="relative w-9 h-5 bg-stone-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#d4af37]"></div>
+          <span class="text-xs font-bold text-[#f5d76e]">Modo Vista Previa</span>
+        </label>
+
+        <!-- 2. Botón Editar días -->
+        <button type="button" onclick="openDaySelectorModal()" class="text-xs bg-[#6b121f] hover:bg-[#871728] text-[#fdf6e9] border border-[#d4af37]/60 rounded-full px-3.5 py-1.5 font-bold transition shadow">
+          ✏️ Editar días
+        </button>
+
+        <!-- 3. Botón Cambiar foto de portada -->
+        <button type="button" onclick="triggerCoverPhotoUpload()" class="text-xs bg-[#0f2d1e] hover:bg-[#184730] text-[#fdf6e9] border border-[#d4af37]/60 rounded-full px-3.5 py-1.5 font-bold transition shadow">
+          🖼️ Cambiar foto de portada
+        </button>
+        <input type="file" id="cover-photo-input" accept="image/*" class="hidden" />
+
+        <!-- 4. Botón Descargar HTML actualizado -->
+        <button type="button" onclick="downloadUpdatedHtml()" class="text-xs bg-gradient-to-r from-[#d4af37] to-[#f5d76e] hover:brightness-110 text-[#2a080c] rounded-full px-4 py-1.5 font-extrabold transition shadow-lg">
+          💾 Descargar HTML actualizado
+        </button>
+
+        <!-- 5. Salir de Admin -->
+        <button type="button" onclick="exitAdminMode()" class="text-xs bg-black/50 hover:bg-black/75 text-[#fdf6e9]/85 hover:text-white border border-white/20 rounded-full px-3.5 py-1.5 font-semibold transition">
+          Salir de Admin
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUIRNALDA DE LUCES NAVIDEÑAS CÁLIDAS SUPERIOR -->
+  <div class="w-full overflow-hidden pointer-events-none select-none pt-1 relative z-20">
+    <svg viewBox="0 0 1200 44" class="w-full h-8 sm:h-11" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,6 Q150,35 300,10 T600,10 T900,10 T1200,6" fill="none" stroke="#261113" stroke-width="2.5" />
+      <circle cx="65" cy="18" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="150" cy="22" r="5" fill="#e65c5c" class="light-bulb" style="color:#e65c5c" />
+      <circle cx="235" cy="16" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="365" cy="18" r="5" fill="#34d399" class="light-bulb" style="color:#34d399" />
+      <circle cx="450" cy="22" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="535" cy="16" r="5" fill="#e65c5c" class="light-bulb" style="color:#e65c5c" />
+      <circle cx="665" cy="18" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="750" cy="22" r="5" fill="#34d399" class="light-bulb" style="color:#34d399" />
+      <circle cx="835" cy="16" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="965" cy="18" r="5" fill="#e65c5c" class="light-bulb" style="color:#e65c5c" />
+      <circle cx="1050" cy="22" r="5" fill="#f5d76e" class="light-bulb" style="color:#f5d76e" />
+      <circle cx="1135" cy="16" r="5" fill="#34d399" class="light-bulb" style="color:#34d399" />
+    </svg>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PORTADA / CABECERA ROMÁNTICA CON ILUSTRACIÓN Y CONTADORES EN VIVO     -->
+  <!-- ===================================================================== -->
+  <header class="relative z-10 max-w-5xl mx-auto px-4 pt-2 pb-8 sm:pt-4 sm:pb-10">
+    <div class="hero-frame rounded-3xl overflow-hidden bg-gradient-to-b from-[#33090f] via-[#4a0e17] to-[#210609] border-2 border-[#d4af37]/75 p-3 sm:p-5">
+
+      <!-- Marco dorado alrededor de la ilustración de portada -->
+      <div class="relative rounded-2xl overflow-hidden border-2 border-[#f5d76e]/70 bg-[#1a090b] aspect-[16/9] sm:aspect-[21/10] w-full shadow-inner">
+
+        <!-- Imagen de portada (intenta cargar fc0f08e6.jpeg o la imagen subida en Base64) -->
+        <img
+          id="hero-cover-image"
+          src="fc0f08e6.jpeg"
+          alt="Ilustración navideña de portada en el mercadillo de Navidad"
+          class="w-full h-full object-cover object-center transition-opacity duration-500"
+          onerror="handleCoverImageFallback()"
+        />
+
+        <!-- Ilustración SVG navideña de mercadillo con árbol iluminado (fallback si no carga la foto local) -->
+        <div id="hero-cover-fallback" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-[#150d1a]">
+          <svg viewBox="0 0 960 440" class="w-full h-full object-cover" preserveAspectRatio="xMidYMid slice" aria-label="Ilustración de mercadillo navideño con árbol iluminado">
+            <defs>
+              <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0d152b" />
+                <stop offset="55%" stop-color="#22152a" />
+                <stop offset="100%" stop-color="#3b161b" />
+              </linearGradient>
+              <radialGradient id="treeGlow" cx="50%" cy="52%" r="42%">
+                <stop offset="0%" stop-color="#f5d76e" stop-opacity="0.55" />
+                <stop offset="55%" stop-color="#d4af37" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="#d4af37" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="snowGround" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f3ead9" />
+                <stop offset="100%" stop-color="#d4c4b0" />
+              </linearGradient>
+              <linearGradient id="stallWarm" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffd97d" />
+                <stop offset="100%" stop-color="#e09234" />
+              </linearGradient>
+            </defs>
+
+            <!-- Cielo nocturno invernal -->
+            <rect width="960" height="440" fill="url(#nightSky)" />
+
+            <!-- Estrellas y copos suaves -->
+            <g fill="#fdf6e9" opacity="0.75">
+              <circle cx="85" cy="52" r="2.2" />
+              <circle cx="170" cy="88" r="1.6" />
+              <circle cx="265" cy="40" r="2" />
+              <circle cx="340" cy="76" r="1.4" />
+              <circle cx="620" cy="48" r="2" />
+              <circle cx="715" cy="78" r="1.8" />
+              <circle cx="810" cy="42" r="2.3" />
+              <circle cx="885" cy="96" r="1.5" />
+              <circle cx="120" cy="140" r="1.6" />
+              <circle cx="850" cy="145" r="1.8" />
+            </g>
+
+            <!-- Silueta de edificios históricos europeos al fondo -->
+            <g fill="#261421" opacity="0.88">
+              <rect x="30" y="165" width="145" height="190" />
+              <polygon points="30,165 102,108 175,165" />
+              <rect x="195" y="195" width="120" height="160" />
+              <rect x="655" y="185" width="130" height="170" />
+              <rect x="795" y="140" width="145" height="215" />
+              <polygon points="820,140 867,62 914,140" />
+            </g>
+
+            <!-- Ventanitas cálidas en edificios del fondo -->
+            <g fill="#f5d76e" opacity="0.55">
+              <rect x="62" y="195" width="16" height="24" rx="3" />
+              <rect x="106" y="195" width="16" height="24" rx="3" />
+              <rect x="225" y="220" width="14" height="20" rx="2" />
+              <rect x="260" y="220" width="14" height="20" rx="2" />
+              <rect x="690" y="210" width="14" height="22" rx="2" />
+              <rect x="730" y="210" width="14" height="22" rx="2" />
+              <rect x="845" y="175" width="16" height="26" rx="3" />
+              <rect x="880" y="175" width="16" height="26" rx="3" />
+            </g>
+
+            <!-- Resplandor dorado detrás del gran árbol -->
+            <ellipse cx="480" cy="225" rx="260" ry="200" fill="url(#treeGlow)" />
+
+            <!-- Suelo nevado de la plaza -->
+            <ellipse cx="480" cy="425" rx="580" ry="95" fill="url(#snowGround)" opacity="0.92" />
+
+            <!-- Gran Árbol de Navidad central iluminado -->
+            <g>
+              <rect x="462" y="325" width="36" height="52" fill="#4b2a19" />
+              <polygon points="480,48 345,342 615,342" fill="#0f2d1e" stroke="#184730" stroke-width="3" />
+              <polygon points="480,48 370,272 590,272" fill="#133826" />
+              <polygon points="480,48 400,192 560,192" fill="#17442e" />
+
+              <!-- Guirnaldas de luz dorada en el árbol -->
+              <path d="M428,158 Q480,180 532,158" fill="none" stroke="#f5d76e" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round" />
+              <path d="M402,218 Q480,248 558,218" fill="none" stroke="#fff2b2" stroke-width="5.5" stroke-dasharray="2 11" stroke-linecap="round" />
+              <path d="M376,280 Q480,315 584,280" fill="none" stroke="#f5d76e" stroke-width="6" stroke-dasharray="2 12" stroke-linecap="round" />
+              <path d="M356,330 Q480,358 604,330" fill="none" stroke="#fff2b2" stroke-width="5.5" stroke-dasharray="2 11" stroke-linecap="round" />
+
+              <!-- Bolas navideñas rojas y doradas -->
+              <circle cx="456" cy="130" r="6" fill="#f5d76e" />
+              <circle cx="506" cy="144" r="6" fill="#d93848" />
+              <circle cx="436" cy="196" r="7" fill="#d93848" />
+              <circle cx="518" cy="204" r="6.5" fill="#f5d76e" />
+              <circle cx="468" cy="252" r="7.5" fill="#f5d76e" />
+              <circle cx="412" cy="272" r="7" fill="#f5d76e" />
+              <circle cx="546" cy="276" r="7.5" fill="#d93848" />
+              <circle cx="496" cy="306" r="8" fill="#d93848" />
+              <circle cx="426" cy="322" r="7" fill="#f5d76e" />
+
+              <!-- Estrella superior brillante -->
+              <polygon points="480,16 487,35 508,35 491,47 497,66 480,54 463,66 469,47 452,35 473,35" fill="#f5d76e" stroke="#fff8d6" stroke-width="2" />
+            </g>
+
+            <!-- Caseta de madera izquierda del mercadillo navideño -->
+            <g>
+              <rect x="64" y="242" width="210" height="145" rx="4" fill="#632d18" stroke="#3c180b" stroke-width="3" />
+              <rect x="86" y="274" width="166" height="68" rx="4" fill="url(#stallWarm)" />
+              <rect x="76" y="340" width="186" height="14" rx="3" fill="#471d0f" />
+              <!-- Tejado nevado -->
+              <polygon points="44,248 169,176 294,248" fill="#4f2011" stroke="#301209" stroke-width="3" />
+              <path d="M44,248 Q106,204 169,176 Q232,204 294,248 Q265,256 238,242 Q204,254 169,238 Q134,254 100,242 Q72,256 44,248 Z" fill="#fdf6e9" opacity="0.95" />
+              <!-- Guirnalda de luces en la caseta -->
+              <path d="M84,275 Q169,296 254,275" fill="none" stroke="#fff3c4" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" />
+            </g>
+
+            <!-- Caseta de madera derecha del mercadillo navideño -->
+            <g>
+              <rect x="686" y="242" width="210" height="145" rx="4" fill="#632d18" stroke="#3c180b" stroke-width="3" />
+              <rect x="708" y="274" width="166" height="68" rx="4" fill="url(#stallWarm)" />
+              <rect x="698" y="340" width="186" height="14" rx="3" fill="#471d0f" />
+              <!-- Tejado nevado -->
+              <polygon points="666,248 791,176 916,248" fill="#4f2011" stroke="#301209" stroke-width="3" />
+              <path d="M666,248 Q728,204 791,176 Q854,204 916,248 Q887,256 860,242 Q826,254 791,238 Q756,254 722,242 Q694,256 666,248 Z" fill="#fdf6e9" opacity="0.95" />
+              <!-- Guirnalda de luces en la caseta -->
+              <path d="M706,275 Q791,296 876,275" fill="none" stroke="#fff3c4" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" />
+            </g>
+
+            <!-- Silueta romántica de pareja abrazada mirando el árbol -->
+            <g fill="#25090e" opacity="0.92">
+              <circle cx="458" cy="316" r="15" />
+              <path d="M435,388 C435,346 444,334 458,334 C472,334 480,348 480,388 Z" />
+              <circle cx="496" cy="308" r="16" />
+              <path d="M472,388 C472,342 482,328 496,328 C512,328 522,344 522,388 Z" />
+            </g>
+            <!-- Corazón dorado sutil sobre la pareja -->
+            <path d="M477,282 C477,277 470,275 468,280 C466,285 477,293 477,293 C477,293 488,285 486,280 C484,275 477,277 477,282 Z" fill="#f5d76e" />
+          </svg>
+
+          <!-- Nota discreta visible SOLO en Modo Admin cuando se está usando el SVG de respaldo -->
+          <div id="fallback-admin-note" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-black/75 backdrop-blur-md border border-[#d4af37]/70 rounded-xl px-3.5 py-2 text-center shadow-lg">
+            <p class="text-[11px] sm:text-xs text-[#f5d76e]">
+              <i class="fa-solid fa-circle-info mr-1"></i>
+              <strong>Nota Admin:</strong> No se encontró <code>fc0f08e6.jpeg</code> en local. Puedes subir vuestra ilustración desde el botón <strong>«🖼️ Cambiar foto de portada»</strong> de la barra superior.
+            </p>
+          </div>
+        </div>
+
+        <!-- Sombreado sutil para dar profundidad cálida -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#2a080c]/75 via-transparent to-[#f5d76e]/10"></div>
+
+        <!-- Insignia de fechas -->
+        <div class="absolute top-3 left-3 sm:top-4 sm:left-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2a080c]/85 backdrop-blur-md border border-[#f5d76e]/60 text-[#f5d76e] text-[11px] sm:text-xs font-bold shadow-lg">
+          <i class="fa-solid fa-snowflake animate-spin" style="animation-duration: 12s;"></i>
+          <span>1 — 24 de Diciembre de 2026</span>
+        </div>
+
+        <!-- Botón flotante para cambiar foto (visible solo en Modo Admin) -->
+        <button id="hero-quick-upload-btn" type="button" onclick="triggerCoverPhotoUpload()" class="hidden absolute top-3 right-3 sm:top-4 sm:right-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/75 hover:bg-black/95 text-[#f5d76e] border border-[#f5d76e]/70 text-xs font-bold shadow-lg transition backdrop-blur-md">
+          <i class="fa-solid fa-camera"></i>
+          <span>Cambiar portada</span>
+        </button>
+      </div>
+
+      <!-- TÍTULO, SUBTÍTULO Y CONTADORES REGRESIVOS -->
+      <div class="text-center px-2 pt-5 pb-2 sm:pt-6 sm:pb-3">
+        <div class="flex items-center justify-center gap-3 mb-2">
+          <span class="h-[1px] w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#d4af37]"></span>
+          <i class="fa-solid fa-star text-[#f5d76e] text-xs"></i>
+          <span class="h-[1px] w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#d4af37]"></span>
+        </div>
+
+        <h1 class="font-serif-elegant text-3xl sm:text-4xl md:text-5xl font-bold text-[#f5d76e] tracking-wide drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
+          Calendario de Adviento de Silvia
+        </h1>
+
+        <p class="font-serif-elegant italic text-base sm:text-lg md:text-xl text-[#fdf6e9]/95 mt-2 max-w-2xl mx-auto leading-relaxed">
+          24 días de sorpresas hasta Navidad y nuestra aventura en los Dolomitas
+        </p>
+
+        <!-- DOS CONTADORES REGRESIVOS EN TIEMPO REAL -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3.5 max-w-3xl mx-auto">
+          <!-- Contador 1: Nochebuena -->
+          <div class="rounded-2xl bg-[#0f2d1e]/90 border border-[#d4af37]/55 p-4 shadow-lg">
+            <p class="text-xs uppercase tracking-widest text-[#f5d76e] font-extrabold mb-2.5 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-tree"></i> Cuenta atrás para Nochebuena
+            </p>
+            <div id="countdown-christmas" class="grid grid-cols-4 gap-2 text-center"></div>
+          </div>
+
+          <!-- Contador 2: Dolomitas y Milán -->
+          <div class="rounded-2xl bg-[#5a101b]/90 border border-[#d4af37]/55 p-4 shadow-lg">
+            <p class="text-xs uppercase tracking-widest text-[#f5d76e] font-extrabold mb-2.5 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-plane-departure"></i> Cuenta atrás para Dolomitas y Milán
+            </p>
+            <div id="countdown-dolomites" class="grid grid-cols-4 gap-2 text-center"></div>
+          </div>
+        </div>
+
+        <!-- Fecha actual y contador de sorpresas abiertas -->
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm">
+          <div class="bg-black/40 border border-[#d4af37]/35 rounded-full px-4 py-1.5 text-[#fdf6e9] flex items-center gap-2">
+            <i class="fa-regular fa-calendar text-[#f5d76e]"></i>
+            <span id="current-date-label">Cargando fecha...</span>
+          </div>
+          <div class="bg-[#6b121f]/80 border border-[#d4af37]/50 rounded-full px-4 py-1.5 text-[#f5d76e] flex items-center gap-2">
+            <i class="fa-solid fa-gift"></i>
+            <span><strong id="opened-count">0</strong> de 24 sorpresas abiertas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- CUADRÍCULA FESTIVA DE 24 CASILLAS (1 AL 24 DE DICIEMBRE DE 2026)      -->
+  <!-- ===================================================================== -->
+  <main class="relative z-10 max-w-6xl mx-auto px-4 pb-16">
+    <div class="text-center mb-6">
+      <p class="text-xs sm:text-sm text-[#fdf6e9]/85 max-w-xl mx-auto">
+        Pulsa en la casilla del día para descubrir tu sorpresa. Las puertas futuras permanecerán cerradas hasta su día... <span class="text-[#f5d76e] font-bold">¡sin hacer trampas!</span> 🎄
+      </p>
+    </div>
+
+    <div id="calendar-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-5">
+      <!-- Generado por JavaScript -->
+    </div>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PIE DE PÁGINA CON ACCESO ADMIN DISCRETO (PIN 7744)                    -->
+  <!-- ===================================================================== -->
+  <footer class="relative z-10 border-t border-[#d4af37]/25 bg-black/50 backdrop-blur-sm py-6 px-4 text-center">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#fdf6e9]/70">
+      <p class="flex items-center gap-1.5">
+        Hecho con todo mi <i class="fa-solid fa-heart text-[#e65c5c]"></i> para Silvia • Navidad 2026
+      </p>
+
+      <button id="admin-access-btn" type="button" onclick="openPinModal()" class="text-[#fdf6e9]/55 hover:text-[#f5d76e] transition flex items-center gap-1.5 py-2 px-3.5 rounded-xl hover:bg-white/5 font-semibold">
+        <span>🔒 Acceso Admin</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL DE SORPRESA DEL DÍA                                             -->
+  <!-- ===================================================================== -->
+  <div id="surprise-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="modal-pop relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#fdf6e9] text-[#351115] border-4 border-[#d4af37] shadow-[0_25px_75px_rgba(0,0,0,0.88)] p-6 sm:p-8">
+
+      <!-- Cabecera del Modal -->
+      <div class="flex items-center justify-between border-b-2 border-[#d4af37]/35 pb-4 mb-5">
+        <div class="flex items-center gap-3.5">
+          <span id="modal-day-badge" class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6b121f] to-[#2a080c] text-[#f5d76e] font-serif-elegant text-2xl font-extrabold shadow-md border-2 border-[#d4af37]">
+            1
+          </span>
+          <div>
+            <span id="modal-category-tag" class="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#6b121f]/10 text-[#6b121f] mb-0.5">
+              Sorpresa
+            </span>
+            <h2 id="modal-title" class="font-serif-elegant text-xl sm:text-2xl font-bold text-[#4a0e17]">
+              1 de Diciembre
+            </h2>
+          </div>
+        </div>
+
+        <button type="button" onclick="closeSurpriseModal()" class="w-9 h-9 rounded-full bg-[#d4af37]/20 hover:bg-[#6b121f]/15 text-[#4a0e17] flex items-center justify-center transition" aria-label="Cerrar ventana">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Contenido principal del día -->
+      <div id="modal-body-container"></div>
+
+      <!-- Extras interactivos (Botones música, WhatsApp, lista admiración, checklist maleta, tarjeta embarque) -->
+      <div id="modal-extra-container" class="mt-6 space-y-4"></div>
+
+      <!-- Pie del Modal -->
+      <div class="mt-7 pt-4 border-t border-[#d4af37]/35 flex flex-wrap items-center justify-between gap-3">
+        <button id="modal-admin-edit-btn" type="button" class="hidden text-xs font-bold bg-[#d4af37]/35 hover:bg-[#d4af37]/60 text-[#351115] px-3.5 py-2 rounded-xl transition">
+          ✏️ Editar este día
+        </button>
+
+        <button type="button" onclick="closeSurpriseModal()" class="ml-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#6b121f] to-[#4a0e17] hover:brightness-110 text-[#fdf6e9] font-bold text-sm shadow-md transition">
+          Cerrar casilla ✨
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL DE PIN DE ADMINISTRADOR (PIN: 7744)                             -->
+  <!-- ===================================================================== -->
+  <div id="pin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div id="pin-modal-box" class="modal-pop relative w-full max-w-sm rounded-3xl bg-gradient-to-b from-[#33090f] to-[#1e0609] text-[#fdf6e9] border-2 border-[#d4af37] shadow-2xl p-6 sm:p-7 text-center">
+      <button type="button" onclick="closePinModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-[#fdf6e9] flex items-center justify-center transition" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-[#f5d76e] to-[#d4af37] text-[#2a080c] flex items-center justify-center text-2xl shadow-lg">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+
+      <h3 class="font-serif-elegant text-2xl font-bold text-[#f5d76e]">Acceso Administrador</h3>
+      <p class="text-xs text-[#fdf6e9]/75 mt-1 mb-5">Introduce el PIN de 4 dígitos para activar el panel de edición y vista previa.</p>
+
+      <form id="pin-form" onsubmit="verifyAdminPin(event)" class="space-y-4">
+        <input
+          type="password"
+          id="admin-pin-input"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="4"
+          autocomplete="off"
+          placeholder="••••"
+          class="w-full text-center tracking-[0.65em] text-2xl font-extrabold rounded-2xl bg-black/50 border-2 border-[#d4af37]/60 focus:border-[#f5d76e] focus:outline-none py-3 px-4 text-[#f5d76e] placeholder:text-[#fdf6e9]/25"
+        />
+
+        <p id="pin-error-msg" class="hidden text-xs font-extrabold text-[#ff7b7b] bg-[#ff4d4d]/15 border border-[#ff4d4d]/40 rounded-xl py-2 px-3">
+          <i class="fa-solid fa-circle-exclamation mr-1"></i> PIN incorrecto
+        </p>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition">
+            Cancelar
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f5d76e] hover:brightness-110 text-[#2a080c] text-sm font-extrabold shadow-lg transition">
+            Entrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL SELECTOR DE DÍAS PARA EDITAR (MODO ADMIN)                       -->
+  <!-- ===================================================================== -->
+  <div id="admin-selector-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="modal-pop relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-3xl bg-[#24070b] text-[#fdf6e9] border-2 border-[#d4af37] shadow-2xl p-6">
+      <div class="flex items-center justify-between border-b border-[#d4af37]/30 pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-[#f5d76e]"></i>
+          <h3 class="font-serif-elegant text-xl font-bold text-[#f5d76e]">Editar días del calendario</h3>
+        </div>
+        <button type="button" onclick="closeDaySelectorModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-[#fdf6e9] flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-[#fdf6e9]/80 mb-4">
+        Elige cualquier día (del 1 al 24) para personalizar su título, mensaje, canción/enlaces (Día 4) o la lista de la maleta (Día 22). Cuando termines, usa <strong>«💾 Descargar HTML actualizado»</strong> para enviárselo a Silvia con todos tus cambios incluidos.
+      </p>
+
+      <div id="admin-days-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+
+      <div class="mt-5 pt-4 border-t border-[#d4af37]/25 flex flex-wrap items-center justify-between gap-3">
+        <button type="button" onclick="restoreDefaultCoverPhoto()" class="text-xs text-[#f5d76e] hover:underline">
+          <i class="fa-solid fa-rotate-left mr-1"></i> Restaurar portada original
+        </button>
+        <button type="button" onclick="closeDaySelectorModal()" class="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL EDITOR DE UN DÍA CONCRETO (MODO ADMIN)                          -->
+  <!-- ===================================================================== -->
+  <div id="admin-editor-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="modal-pop relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#24070b] text-[#fdf6e9] border-2 border-[#d4af37] shadow-2xl p-6 sm:p-7">
+      <div class="flex items-center justify-between border-b border-[#d4af37]/30 pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-[#f5d76e]"></i>
+          <h3 id="editor-modal-title" class="font-serif-elegant text-xl font-bold text-[#f5d76e]">Editar Día</h3>
+        </div>
+        <button type="button" onclick="closeAdminEditor()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-[#fdf6e9] flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Título / Etiqueta del día</label>
+          <input type="text" id="editor-day-tag" class="w-full rounded-xl bg-black/50 border border-[#d4af37]/50 focus:border-[#f5d76e] focus:outline-none px-3.5 py-2 text-sm text-white" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Mensaje del día</label>
+          <textarea id="editor-day-content" rows="5" class="w-full rounded-xl bg-black/50 border border-[#d4af37]/50 focus:border-[#f5d76e] focus:outline-none px-3.5 py-2.5 text-sm text-white leading-relaxed"></textarea>
+        </div>
+
+        <!-- Campos de música (Día 4) -->
+        <div id="editor-song-wrapper" class="hidden space-y-3 bg-black/30 p-3.5 rounded-2xl border border-[#d4af37]/30">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Nombre de la canción</label>
+            <input type="text" id="editor-day-song-title" placeholder="Mil vidas - Morad" class="w-full rounded-xl bg-black/50 border border-[#d4af37]/45 focus:border-[#f5d76e] focus:outline-none px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Enlace de Spotify</label>
+            <input type="url" id="editor-day-spotify" placeholder="https://open.spotify.com/..." class="w-full rounded-xl bg-black/50 border border-[#d4af37]/45 focus:border-[#f5d76e] focus:outline-none px-3 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Enlace de YouTube</label>
+            <input type="url" id="editor-day-youtube" placeholder="https://www.youtube.com/..." class="w-full rounded-xl bg-black/50 border border-[#d4af37]/45 focus:border-[#f5d76e] focus:outline-none px-3 py-2 text-xs text-white" />
+          </div>
+        </div>
+
+        <!-- Campo checklist de la maleta (Día 22) -->
+        <div id="editor-checklist-wrapper" class="hidden bg-black/30 p-3.5 rounded-2xl border border-[#d4af37]/30">
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#f5d76e] mb-1">Elementos de la maleta (uno por línea)</label>
+          <textarea id="editor-day-checklist" rows="7" class="w-full rounded-xl bg-black/50 border border-[#d4af37]/45 focus:border-[#f5d76e] focus:outline-none px-3 py-2 text-xs text-white leading-relaxed" placeholder="Ropa térmica&#10;Abrigo impermeable&#10;Guantes, gorro y bufanda"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-between gap-3">
+        <button type="button" onclick="resetSingleDayToDefault()" class="text-xs text-[#fdf6e9]/70 hover:text-[#ff7b7b] underline">
+          Restaurar texto original
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeAdminEditor()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">
+            Cancelar
+          </button>
+          <button type="button" onclick="saveAdminDayEdit()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f5d76e] hover:brightness-110 text-[#2a080c] font-extrabold text-xs shadow-lg transition">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA AUTOCONTENIDA DEL CALENDARIO (100% LOCAL, SIN FIREBASE)        -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. CONSTANTES Y CONTENIDO EXACTO DE LOS 24 DÍAS
+    // =========================================================================
+    const ADMIN_PIN = "7744";
+    const DEFAULT_COVER_SRC = "fc0f08e6.jpeg";
+
+    const STORAGE_KEYS = {
+      DAYS: "adviento_silvia_2026_days_v2",
+      COVER: "adviento_silvia_2026_cover_v2",
+      CONFIG_TS: "adviento_silvia_2026_ts_v2",
+      OPENED: "adviento_silvia_2026_opened_v2",
+      CHECKLIST: "adviento_silvia_2026_checklist_v2"
+    };
+
+    const DEFAULT_DAYS = [
+      {
+        day: 1,
+        tag: "Bienvenida ✨",
+        icon: "fa-star",
+        color: "red",
+        content: "24 días, 24 pequeños motivos para recordarte por qué eres mi persona favorita. Hoy empieza nuestra cuenta atrás para Navidad... y para nuestro viajazo de Fin de Año. Abre una casilla cada día (sin hacer trampas)."
+      },
+      {
+        day: 2,
+        tag: "Cupón Dorado 🎟️",
+        icon: "fa-film",
+        color: "green",
+        isCoupon: true,
+        couponTitle: "VALE POR TARDE DE PELI Y MANTA",
+        content: "Vale por: Una tarde de peli y manta donde tú eliges absolutamente todo (incluso si es un pastelón navideño)."
+      },
+      {
+        day: 3,
+        tag: "Recuerdo · Los inicios ❤️",
+        icon: "fa-heart",
+        color: "red",
+        content: "Hoy me he acordado de todo lo que costó llegar hasta aquí. 5 años detrás de ti que valieron cada segundo desde aquel verano en Valencia. El mejor 'sí' de mi vida."
+      },
+      {
+        day: 4,
+        tag: "Nuestra canción 🎶",
+        icon: "fa-music",
+        color: "green",
+        isMusic: true,
+        songTitle: "Mil vidas - Morad",
+        content: "Ponte los cascos y escucha esta canción. Cada vez que suena me acuerdo de ti.",
+        spotifyUrl: "https://open.spotify.com/search/Mil%20vidas%20Morad",
+        youtubeUrl: "https://www.youtube.com/results?search_query=Mil+vidas+Morad"
+      },
+      {
+        day: 5,
+        tag: "Plan navideño 🎄",
+        icon: "fa-mug-hot",
+        color: "red",
+        content: "Misión de hoy: Cuando nos veamos esta semana nos vamos a dar un paseo a ver las luces de Navidad y a tomar un chocolate caliente."
+      },
+      {
+        day: 6,
+        tag: "Pequeño detalle ✨",
+        icon: "fa-snowflake",
+        color: "green",
+        content: "Un recordatorio rápido en mitad del puente: me encanta la vida que estamos construyendo juntos, incluso en los días más normales."
+      },
+      {
+        day: 7,
+        tag: "Cupón Dorado 💆‍♀️",
+        icon: "fa-spa",
+        color: "red",
+        isCoupon: true,
+        couponTitle: "VALE POR UN MASAJE SIN PRISAS",
+        content: "Vale por: Un masaje de espalda de 20 minutos sin mirar el móvil ni tener prisa. Canjeable en nuestra próxima tarde juntos."
+      },
+      {
+        day: 8,
+        tag: "Recuerdo · Granada 🕌",
+        icon: "fa-map-location-dot",
+        color: "green",
+        content: "Pensando en nuestra escapada a Granada en octubre del año pasado. Qué ganas de seguir tachando sitios del mapa contigo."
+      },
+      {
+        day: 9,
+        tag: "3 cosas que admiro de ti 💕",
+        icon: "fa-wand-magic-sparkles",
+        color: "red",
+        isAdmireList: true,
+        content: "Hoy te dejo 3 cosas que admiro y me vuelven loco de ti: tus ojos, tu manera de quererme y tu cuerpo.",
+        admireItems: [
+          { icon: "fa-eye", label: "Tus ojos", note: "Por cómo brillan y me miran cada día" },
+          { icon: "fa-heart", label: "Tu manera de quererme", note: "Tan real, tan bonita y tan nuestra" },
+          { icon: "fa-fire", label: "Tu cuerpo", note: "Que me vuelve completamente loco" }
+        ]
+      },
+      {
+        day: 10,
+        tag: "Cupón Dorado 🥐",
+        icon: "fa-cookie-bite",
+        color: "green",
+        isCoupon: true,
+        couponTitle: "VALE POR MERIENDA O CAFÉ DULCE",
+        content: "Vale por: Merienda o café con algo bien dulce donde tú quieras la próxima vez que quedemos. Invito yo."
+      },
+      {
+        day: 11,
+        tag: "Nostalgia · San Esteve 🌹",
+        icon: "fa-heart-circle-check",
+        color: "red",
+        content: "Hay sitios que se quedan marcados para siempre. Siempre que pienso en el mirador de San Esteve me vuelve la misma sonrisa de aquel día (con carta, rosa y huevo Kinder incluidos)."
+      },
+      {
+        day: 12,
+        tag: "Reto WhatsApp 😜",
+        icon: "fa-face-laugh-wink",
+        color: "green",
+        content: "Reto del día: Mándame ahora mismo una foto tuya haciendo una mueca o dime qué es lo primero que harías si nos tocara la lotería mañana.",
+        whatsappButtonLabel: "Responder por WhatsApp",
+        whatsappPrompt: "¡Reto del día 12 cumplido! Mira esto 😂✨"
+      },
+      {
+        day: 13,
+        tag: "Recuerdo · Roma 🇮🇹",
+        icon: "fa-landmark",
+        color: "red",
+        content: "De Roma en marzo me quedo con muchas cosas, pero sobre todo con caminar contigo sin rumbo. ¡Y en nada volvemos a pisar Italia juntos!"
+      },
+      {
+        day: 14,
+        tag: "Reto WhatsApp 🎙️",
+        icon: "fa-microphone-lines",
+        color: "green",
+        content: "Reto de WhatsApp: Mándame ahora mismo un audio contándome cuál ha sido tu momento favorito juntos de este año (sin saltarte ningún detalle).",
+        whatsappButtonLabel: "Enviar por WhatsApp",
+        whatsappPrompt: "¡Hola amor! Aquí va mi audio con mi momento favorito juntos de este año ❤️🎙️"
+      },
+      {
+        day: 15,
+        tag: "Nota de apoyo 🤝",
+        icon: "fa-hand-holding-heart",
+        color: "red",
+        content: "Queda muy poco para acabar el año. Gracias por ser mi equipo, mi calma y mi mejor apoyo en cada paso que doy."
+      },
+      {
+        day: 16,
+        tag: "Plan juntos 🎲",
+        icon: "fa-puzzle-piece",
+        color: "green",
+        content: "Plan para nuestra próxima quedada: Tarde de juegos, risas y desconexión total del mundo."
+      },
+      {
+        day: 17,
+        tag: "Reto WhatsApp 🧣",
+        icon: "fa-camera-retro",
+        color: "red",
+        content: "Reto de WhatsApp: Faltan solo 13 días para el 30 de diciembre. Mándame ahora mismo por WhatsApp una foto de lo primero que tienes clarísimo que vas a meter en la maleta para los Dolomitas (o tu look más abrigado para la nieve).",
+        whatsappButtonLabel: "Enviar por WhatsApp",
+        whatsappPrompt: "¡Mira qué preparada estoy para los Dolomitas! ❄️🧣📸"
+      },
+      {
+        day: 18,
+        tag: "Cupón Dorado 🃏",
+        icon: "fa-crown",
+        color: "green",
+        isCoupon: true,
+        couponTitle: "VALE COMODÍN NAVIDEÑO",
+        content: "Vale comodín: Válido para librarte de algún recado que te dé pereza o para pedirme un capricho cuando nos veamos."
+      },
+      {
+        day: 19,
+        tag: "Mirando al futuro 🏡",
+        icon: "fa-house-chimney-heart",
+        color: "red",
+        content: "Me ilusiona pensar en todos los planes que tenemos por delante, en seguir creciendo juntos y en nuestro futuro hogar."
+      },
+      {
+        day: 20,
+        tag: "Ilusión Dolomitas 🏔️",
+        icon: "fa-mountain-sun",
+        color: "green",
+        content: "En 10 días estaremos rodeados de nieve en Val Gardena, paseando por Bolzano, Ortisei y Sirmione... ¡Qué ganas de despedir el año contigo en Milán!"
+      },
+      {
+        day: 21,
+        tag: "Cuenta atrás especial 💖",
+        icon: "fa-gem",
+        color: "red",
+        content: "Quedan solo 3 días para Nochebuena y 9 para nuestro viaje. Quería aprovechar hoy únicamente para decirte lo afortunado que me siento de compartir mi vida contigo. Cada foto, cada viaje y cada risa a tu lado es mi mejor regalo."
+      },
+      {
+        day: 22,
+        tag: "Operación Maleta 🧳",
+        icon: "fa-suitcase-rolling",
+        color: "green",
+        isChecklist: true,
+        content: "Operación Maleta (Dolomitas & Milán): Aquí tienes nuestra lista para que no se nos olvide nada para el frío.",
+        checklistItems: [
+          "Ropa térmica",
+          "Abrigo impermeable",
+          "Guantes, gorro y bufanda",
+          "Botas para nieve",
+          "Cargador y batería externa",
+          "Documentación / DNI"
+        ]
+      },
+      {
+        day: 23,
+        tag: "Víspera de Nochebuena 🥂",
+        icon: "fa-champagne-glasses",
+        color: "red",
+        content: "Misión de víspera: Hoy toca brindar por nosotros y terminar de repasar que no falte nada para el viaje. ¡Que mañana es Nochebuena!"
+      },
+      {
+        day: 24,
+        tag: "Gran Final · Navidad 🎄✈️",
+        icon: "fa-plane-departure",
+        color: "gold",
+        isGrandFinale: true,
+        content: "¡Feliz Navidad, amor! Gracias por hacer que este año haya sido el mejor de mi vida. Este calendario se acaba hoy, pero en solo 6 días empieza la aventura que tanto hemos esperado juntos. Te quiero muchísimo."
+      }
+    ];
+
+    // =========================================================================
+    // 2. ESTADO LOCAL Y CARGA DESDE CONFIGURACIÓN INCRUSTADA / LOCALSTORAGE
+    // =========================================================================
+    let daysData = JSON.parse(JSON.stringify(DEFAULT_DAYS));
+    let customCoverDataUrl = null;
+    let openedDays = new Set();
+    let checklistChecked = {};
+
+    let isAdminMode = false;
+    let previewModeEnabled = false;
+    let editingDayNumber = null;
+
+    function safeJsonParse(str, fallback = null) {
+      try {
+        return JSON.parse(str);
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function loadInitialState() {
+      // 1. Leer configuración incrustada en el propio HTML (si se descargó desde Admin)
+      let embedded = { exportedAt: 0, customCover: null, days: null };
+      const configEl = document.getElementById("embedded-calendar-config");
+      if (configEl && configEl.textContent.trim()) {
+        const parsed = safeJsonParse(configEl.textContent, null);
+        if (parsed && typeof parsed === "object") {
+          embedded = parsed;
+        }
+      }
+
+      // 2. Comprobar marcas de tiempo para priorizar un HTML recién exportado sobre localStorage antiguo
+      const localTs = Number(localStorage.getItem(STORAGE_KEYS.CONFIG_TS) || "0");
+      const embeddedTs = Number(embedded.exportedAt || "0");
+
+      if (embeddedTs > localTs) {
+        if (Array.isArray(embedded.days) && embedded.days.length === 24) {
+          daysData = embedded.days;
+          try { localStorage.setItem(STORAGE_KEYS.DAYS, JSON.stringify(daysData)); } catch (_) {}
+        }
+        if (embedded.customCover) {
+          customCoverDataUrl = embedded.customCover;
+          try { localStorage.setItem(STORAGE_KEYS.COVER, customCoverDataUrl); } catch (_) {}
+        } else {
+          customCoverDataUrl = null;
+          try { localStorage.removeItem(STORAGE_KEYS.COVER); } catch (_) {}
+        }
+        try { localStorage.setItem(STORAGE_KEYS.CONFIG_TS, String(embeddedTs)); } catch (_) {}
+      } else {
+        // Cargar ediciones guardadas en localStorage o usar las incrustadas/por defecto
+        const savedDays = safeJsonParse(localStorage.getItem(STORAGE_KEYS.DAYS), null);
+        if (Array.isArray(savedDays) && savedDays.length === 24) {
+          daysData = savedDays;
+        } else if (Array.isArray(embedded.days) && embedded.days.length === 24) {
+          daysData = embedded.days;
+        }
+
+        const savedCover = localStorage.getItem(STORAGE_KEYS.COVER);
+        if (savedCover) {
+          customCoverDataUrl = savedCover;
+        } else if (embedded.customCover) {
+          customCoverDataUrl = embedded.customCover;
+        }
+      }
+
+      // 3. Cargar casillas abiertas y progreso de la checklist de maleta
+      const savedOpened = safeJsonParse(localStorage.getItem(STORAGE_KEYS.OPENED), []);
+      if (Array.isArray(savedOpened)) {
+        openedDays = new Set(savedOpened);
+      }
+
+      const savedChecklist = safeJsonParse(localStorage.getItem(STORAGE_KEYS.CHECKLIST), {});
+      if (savedChecklist && typeof savedChecklist === "object") {
+        checklistChecked = savedChecklist;
+      }
+
+      // 4. Aplicar la imagen de portada inicial
+      applyCoverImage(customCoverDataUrl || DEFAULT_COVER_SRC);
+    }
+
+    function persistDaysLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.DAYS, JSON.stringify(daysData));
+        localStorage.setItem(STORAGE_KEYS.CONFIG_TS, String(Date.now()));
+      } catch (err) {
+        showToast("No se pudo guardar en localStorage (espacio lleno).", "error");
+      }
+    }
+
+    function persistProgressLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.OPENED, JSON.stringify([...openedDays]));
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST, JSON.stringify(checklistChecked));
+      } catch (_) {}
+    }
+
+    // =========================================================================
+    // 3. PORTADA E IMAGEN PRINCIPAL (Base64 + Fallback SVG mercadillo)
+    // =========================================================================
+    function applyCoverImage(src) {
+      const img = document.getElementById("hero-cover-image");
+      const fallback = document.getElementById("hero-cover-fallback");
+      if (!img || !fallback) return;
+
+      fallback.classList.add("hidden");
+      img.classList.remove("hidden");
+      img.src = src;
+    }
+
+    function handleCoverImageFallback() {
+      const img = document.getElementById("hero-cover-image");
+      const fallback = document.getElementById("hero-cover-fallback");
+      if (img) img.classList.add("hidden");
+      if (fallback) fallback.classList.remove("hidden");
+      updateFallbackAdminNoteVisibility();
+    }
+
+    function updateFallbackAdminNoteVisibility() {
+      const note = document.getElementById("fallback-admin-note");
+      if (!note) return;
+      if (isAdminMode) {
+        note.classList.remove("hidden");
+      } else {
+        note.classList.add("hidden");
+      }
+    }
+
+    function triggerCoverPhotoUpload() {
+      if (!isAdminMode) return;
+      const input = document.getElementById("cover-photo-input");
+      if (input) input.click();
+    }
+
+    // Al elegir una foto local, se redimensiona suavemente en canvas y se guarda en Base64
+    document.getElementById("cover-photo-input").addEventListener("change", (event) => {
+      if (!isAdminMode) return;
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            const maxWidth = 1280;
+            const scale = Math.min(1, maxWidth / img.width);
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Convertimos a JPEG en Base64 con buena calidad y peso ligero
+            const base64Url = canvas.toDataURL("image/jpeg", 0.84);
+            customCoverDataUrl = base64Url;
+            applyCoverImage(base64Url);
+
+            try {
+              localStorage.setItem(STORAGE_KEYS.COVER, base64Url);
+              localStorage.setItem(STORAGE_KEYS.CONFIG_TS, String(Date.now()));
+              showToast("¡Foto de portada actualizada y guardada! 🖼️✨", "success");
+            } catch (_) {
+              showToast("Foto aplicada en portada. Pulsa «Descargar HTML actualizado» para conservarla.", "info");
+            }
+          } catch (err) {
+            showToast("No se pudo procesar esa imagen. Inténtalo con otra foto.", "error");
+          }
+        };
+        img.onerror = () => showToast("El archivo seleccionado no es una imagen válida.", "error");
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    });
+
+    function restoreDefaultCoverPhoto() {
+      if (!isAdminMode) return;
+      customCoverDataUrl = null;
+      try {
+        localStorage.removeItem(STORAGE_KEYS.COVER);
+        localStorage.setItem(STORAGE_KEYS.CONFIG_TS, String(Date.now()));
+      } catch (_) {}
+      applyCoverImage(DEFAULT_COVER_SRC);
+      showToast("Portada original restaurada ✨", "info");
+    }
+
+    // =========================================================================
+    // 4. CONTADORES REGRESIVOS EN TIEMPO REAL
+    // =========================================================================
+    function renderCountdownUnit(value, label) {
+      return `
+        <div class="rounded-xl bg-black/35 border border-[#d4af37]/35 py-1.5 px-1">
+          <div class="font-serif-elegant text-lg sm:text-xl font-bold text-[#f5d76e] leading-none">${String(value).padStart(2, "0")}</div>
+          <div class="text-[10px] uppercase tracking-wider text-[#fdf6e9]/75 mt-1">${label}</div>
+        </div>
+      `;
+    }
+
+    function updateSingleCountdown(elementId, diffMs, finishedText) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+
+      if (diffMs <= 0) {
+        el.className = "text-center py-2 font-serif-elegant italic text-base text-[#f5d76e]";
+        el.textContent = finishedText;
+        return;
+      }
+
+      el.className = "grid grid-cols-4 gap-2 text-center";
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diffMs / (1000 * 60)) % 60);
+      const secs = Math.floor((diffMs / 1000) % 60);
+
+      el.innerHTML =
+        renderCountdownUnit(days, "Días") +
+        renderCountdownUnit(hours, "Horas") +
+        renderCountdownUnit(mins, "Min") +
+        renderCountdownUnit(secs, "Seg");
+    }
+
+    function updateCountdowns() {
+      const now = new Date();
+      const targetChristmas = new Date(2026, 11, 24, 0, 0, 0); // 24 dic 2026 00:00
+      const targetDolomites = new Date(2026, 11, 30, 0, 0, 0); // 30 dic 2026 00:00
+
+      updateSingleCountdown("countdown-christmas", targetChristmas - now, "¡Feliz Navidad, Silvia! 🎄❤️");
+      updateSingleCountdown("countdown-dolomites", targetDolomites - now, "¡Rumbo a Dolomitas y Milán! 🏔️✈️");
+    }
+
+    function updateCurrentDateLabel() {
+      const now = new Date();
+      const formatted = now.toLocaleDateString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+      const labelEl = document.getElementById("current-date-label");
+      if (labelEl) {
+        labelEl.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+      }
+    }
+
+    // =========================================================================
+    // 5. BLOQUEO POR FECHA REAL (1 AL 24 DE DICIEMBRE DE 2026)
+    // =========================================================================
+    function isDateReached(dayNumber) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth(); // 11 = diciembre
+      const dayOfMonth = now.getDate();
+
+      if (year > 2026) return true;
+      if (year < 2026) return false;
+      if (month < 11) return false;
+      return dayOfMonth >= dayNumber;
+    }
+
+    function isDayUnlocked(dayNumber) {
+      if (isAdminMode && previewModeEnabled) return true;
+      return isDateReached(dayNumber);
+    }
+
+    // =========================================================================
+    // 6. RENDERIZADO DE LAS 24 PUERTAS DEL CALENDARIO
+    // =========================================================================
+    function renderCalendar() {
+      const grid = document.getElementById("calendar-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      let openedVisibleCount = 0;
+
+      daysData.forEach((item) => {
+        const unlocked = isDayUnlocked(item.day);
+        const wasOpened = unlocked && openedDays.has(item.day);
+        if (wasOpened) openedVisibleCount++;
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.id = `door-card-${item.day}`;
+
+        let styleClass = item.day === 24 ? "door-locked-day24" : "door-locked";
+        if (unlocked) {
+          if (item.day === 24 || item.isGrandFinale) {
+            styleClass = "door-day24-gold";
+          } else if (wasOpened) {
+            styleClass = "door-opened";
+          } else if (item.color === "green") {
+            styleClass = "door-available-green";
+          } else {
+            styleClass = "door-available-red";
+          }
+        }
+
+        // El Día 24 tiene mayor protagonismo visual en móvil (ocupa 2 columnas) y diseño dorado especial
+        const spanClass = item.day === 24 ? "col-span-2 sm:col-span-1" : "";
+
+        card.className = `door-card relative group rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-between min-h-[144px] sm:min-h-[162px] overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#f5d76e] ${styleClass} ${spanClass}`;
+
+        const ribbonsHTML = unlocked && !wasOpened
+          ? `<div class="ribbon-v"></div><div class="ribbon-h"></div>`
+          : "";
+
+        let topBadge = "";
+        if (!unlocked) {
+          topBadge = `<span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/55 text-[#fdf6e9]/75 border border-[#d4af37]/30"><i class="fa-solid fa-lock text-[#f5d76e] text-[9px]"></i> ${item.day} Dic</span>`;
+        } else if (wasOpened) {
+          topBadge = `<span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d4af37]/25 text-[#f5d76e] border border-[#f5d76e]/65"><i class="fa-solid fa-check-double text-[9px]"></i> Abierta</span>`;
+        } else {
+          const badgeColors = item.day === 24
+            ? "bg-[#4a0e17] text-[#f5d76e] border border-[#f5d76e]/70"
+            : "bg-[#f5d76e] text-[#2a080c]";
+          topBadge = `<span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow animate-pulse ${badgeColors}"><i class="fa-solid fa-gift text-[9px]"></i> ¡Abrir!</span>`;
+        }
+
+        const sealHTML = unlocked
+          ? `<span class="wax-seal w-7 h-7 rounded-full flex items-center justify-center text-[#2a080c] text-xs"><i class="fa-solid ${item.icon || "fa-star"}"></i></span>`
+          : `<i class="fa-solid ${item.day === 24 ? "fa-star text-[#f5d76e]/75" : (item.icon || "fa-snowflake") + " text-[#d4af37]/45"} text-sm"></i>`;
+
+        const numberColor = !unlocked
+          ? (item.day === 24 ? "text-[#f5d76e]/80" : "text-[#fdf6e9]/45")
+          : item.day === 24
+          ? "text-[#2a080c] drop-shadow-[0_1px_2px_rgba(255,255,255,0.65)]"
+          : "text-[#f5d76e]";
+
+        const subtitleColor = !unlocked
+          ? "text-[#fdf6e9]/55"
+          : item.day === 24
+          ? "text-[#2a080c] font-extrabold"
+          : "text-[#fdf6e9]";
+
+        card.innerHTML = `
+          ${ribbonsHTML}
+          <div class="relative z-10 w-full flex items-center justify-between">
+            ${topBadge}
+            ${sealHTML}
+          </div>
+
+          <div class="relative z-10 my-2 text-center">
+            <span class="font-serif-elegant text-4xl sm:text-5xl font-extrabold ${numberColor} leading-none select-none">
+              ${item.day}
+            </span>
+          </div>
+
+          <div class="relative z-10 w-full text-center">
+            <p class="text-[11px] font-semibold truncate ${subtitleColor}">
+              ${unlocked ? escapeHtml(item.tag) : (item.day === 24 ? "Gran Final · 24 Dic ✨" : `Se abre el ${item.day} de dic`)}
+            </p>
+          </div>
+        `;
+
+        card.addEventListener("click", () => handleDoorClick(item.day));
+        grid.appendChild(card);
+      });
+
+      const countEl = document.getElementById("opened-count");
+      if (countEl) countEl.textContent = openedVisibleCount;
+    }
+
+    // =========================================================================
+    // 7. APERTURA DE CASILLA, CONFETI DORADO Y MODAL DE SORPRESA
+    // =========================================================================
+    function handleDoorClick(dayNumber) {
+      const unlocked = isDayUnlocked(dayNumber);
+      const cardEl = document.getElementById(`door-card-${dayNumber}`);
+
+      if (!unlocked) {
+        if (cardEl) {
+          cardEl.classList.remove("shake-anim");
+          void cardEl.offsetWidth;
+          cardEl.classList.add("shake-anim");
+        }
+        showToast(`¡Aún no, tramposa! Esta casilla se desbloquea el ${dayNumber} de diciembre 🤫🎄`, "lock");
+        return;
+      }
+
+      // Guardamos como abierta en localStorage (si ya llegó la fecha o si Silvia la abre normalmente)
+      if (isDateReached(dayNumber) || !isAdminMode) {
+        openedDays.add(dayNumber);
+        persistProgressLocal();
+        renderCalendar();
+      }
+
+      launchGoldenConfetti();
+      openSurpriseModal(dayNumber);
+    }
+
+    function openSurpriseModal(dayNumber) {
+      const item = daysData.find((d) => d.day === dayNumber);
+      if (!item) return;
+
+      document.getElementById("modal-day-badge").textContent = item.day;
+      document.getElementById("modal-category-tag").textContent = item.tag;
+      document.getElementById("modal-title").textContent = `${item.day} de Diciembre`;
+
+      const bodyContainer = document.getElementById("modal-body-container");
+      const extraContainer = document.getElementById("modal-extra-container");
+      bodyContainer.innerHTML = "";
+      extraContainer.innerHTML = "";
+
+      // A) Tipo CUPÓN DORADO (Días 2, 7, 10, 18)
+      if (item.isCoupon) {
+        bodyContainer.innerHTML = `
+          <div class="golden-coupon rounded-2xl p-5 sm:p-6 shadow-md text-center">
+            <div class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#6b121f] bg-[#6b121f]/10 px-3 py-1 rounded-full mb-3">
+              <i class="fa-solid fa-ticket"></i>
+              <span>${escapeHtml(item.couponTitle || "CUPÓN DORADO NAVIDEÑO")}</span>
+            </div>
+            <p class="font-serif-elegant text-lg sm:text-xl font-bold text-[#4a0e17] leading-relaxed whitespace-pre-line">
+              ${escapeHtml(item.content)}
+            </p>
+            <div class="mt-4 pt-3 border-t border-dashed border-[#9e7715]/50 flex items-center justify-between text-[11px] font-extrabold text-[#7a580c]">
+              <span>VÁLIDO PARA: SILVIA ❤️</span>
+              <span>SIN CADUCIDAD</span>
+            </div>
+          </div>
+        `;
+      } else {
+        bodyContainer.innerHTML = `
+          <p class="text-[#351115] text-base sm:text-lg leading-relaxed whitespace-pre-line font-medium">
+            ${escapeHtml(item.content)}
+          </p>
+        `;
+      }
+
+      // B) Día 4: Tarjeta de MÚSICA con botones a Spotify y YouTube
+      if (item.isMusic || item.spotifyUrl || item.youtubeUrl) {
+        const songTitle = item.songTitle || "Mil vidas - Morad";
+        let musicHtml = `
+          <div class="rounded-2xl bg-[#0f2d1e]/8 border border-[#0f2d1e]/25 p-4">
+            <div class="flex items-center gap-3 mb-3.5">
+              <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6b121f] to-[#4a0e17] text-[#f5d76e] flex items-center justify-center shadow">
+                <i class="fa-solid fa-headphones"></i>
+              </span>
+              <div>
+                <p class="text-[10px] uppercase tracking-widest font-extrabold text-[#6b121f]">Canción recomendada</p>
+                <p class="font-serif-elegant text-base sm:text-lg font-bold text-[#2a080c]">${escapeHtml(songTitle)}</p>
+              </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2.5">
+        `;
+        if (item.spotifyUrl) {
+          musicHtml += `
+            <a href="${escapeAttr(item.spotifyUrl)}" target="_blank" rel="noopener noreferrer"
+               class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1DB954] hover:bg-[#18a449] text-white font-bold text-sm shadow transition">
+              <i class="fa-brands fa-spotify text-lg"></i>
+              <span>Abrir en Spotify</span>
+            </a>
+          `;
+        }
+        if (item.youtubeUrl) {
+          musicHtml += `
+            <a href="${escapeAttr(item.youtubeUrl)}" target="_blank" rel="noopener noreferrer"
+               class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#dc2626] hover:bg-[#b91c1c] text-white font-bold text-sm shadow transition">
+              <i class="fa-brands fa-youtube text-lg"></i>
+              <span>Abrir en YouTube</span>
+            </a>
+          `;
+        }
+        musicHtml += `</div></div>`;
+        extraContainer.innerHTML += musicHtml;
+      }
+
+      // C) Día 9: Lista bonita con iconos de las 3 cosas que admira
+      if (item.isAdmireList && Array.isArray(item.admireItems)) {
+        const listHtml = item.admireItems.map((entry) => `
+          <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-white/80 border border-[#d4af37]/45 shadow-sm">
+            <span class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6b121f] to-[#4a0e17] text-[#f5d76e] flex items-center justify-center shrink-0 shadow">
+              <i class="fa-solid ${entry.icon}"></i>
+            </span>
+            <div>
+              <p class="font-serif-elegant font-bold text-base text-[#4a0e17] leading-tight">${escapeHtml(entry.label)}</p>
+              <p class="text-xs text-[#5e2a30] mt-0.5">${escapeHtml(entry.note)}</p>
+            </div>
+          </div>
+        `).join("");
+
+        extraContainer.innerHTML += `<div class="space-y-2.5">${listHtml}</div>`;
+      }
+
+      // D) Días 12, 14 y 17: Botón verde directo a WhatsApp
+      if (item.whatsappPrompt) {
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(item.whatsappPrompt)}`;
+        extraContainer.innerHTML += `
+          <a href="${waUrl}" target="_blank" rel="noopener noreferrer"
+             class="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-2xl bg-[#25D366] hover:bg-[#1db954] text-white font-extrabold text-sm shadow-lg transition transform hover:scale-[1.01]">
+            <i class="fa-brands fa-whatsapp text-xl"></i>
+            <span>${escapeHtml(item.whatsappButtonLabel || "Enviar por WhatsApp")}</span>
+          </a>
+        `;
+      }
+
+      // E) Día 22: Checklist interactiva de la maleta
+      if (item.isChecklist && Array.isArray(item.checklistItems)) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "rounded-2xl bg-[#0f2d1e]/8 border-2 border-[#0f2d1e]/25 p-4 sm:p-5";
+        wrapper.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-serif-elegant text-sm sm:text-base font-bold text-[#0f2d1e] flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-[#6b121f]"></i> Checklist de la Maleta
+            </h4>
+            <span id="checklist-progress-badge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#0f2d1e] text-[#f5d76e]"></span>
+          </div>
+          <div id="maleta-checklist-items" class="space-y-2.5"></div>
+        `;
+        extraContainer.appendChild(wrapper);
+        renderPackingChecklist(item.checklistItems);
+      }
+
+      // F) Día 24: TARJETA DE EMBARQUE SIMBÓLICA DE LUJO
+      if (item.isGrandFinale || item.day === 24) {
+        extraContainer.innerHTML += `
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-[#d4af37] bg-gradient-to-br from-[#6b121f] via-[#4a0e17] to-[#2a080c] text-[#fdf6e9]">
+            <!-- Efecto perforado lateral -->
+            <div class="ticket-notch-left"></div>
+            <div class="ticket-notch-right"></div>
+
+            <!-- Cabecera dorada VIP -->
+            <div class="bg-gradient-to-r from-[#c79e28] via-[#f5d76e] to-[#c79e28] text-[#2a080c] px-5 py-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2 font-extrabold text-[11px] sm:text-xs tracking-wider uppercase">
+                <i class="fa-solid fa-plane-up"></i>
+                <span>TARJETA DE EMBARQUE • FIN DE AÑO VIP</span>
+              </div>
+              <i class="fa-solid fa-star text-xs"></i>
+            </div>
+
+            <!-- Cuerpo del billete -->
+            <div class="p-5 sm:p-6">
+              <!-- Origen -> Destino -->
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="text-left">
+                  <p class="text-[10px] uppercase tracking-widest text-[#f5d76e]/80 font-bold">Origen</p>
+                  <p class="font-serif-elegant text-lg sm:text-xl font-extrabold text-white">ESPAÑA</p>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center px-2">
+                  <div class="w-full flex items-center gap-1.5 text-[#f5d76e]">
+                    <span class="h-[1px] flex-1 border-t border-dashed border-[#f5d76e]/65"></span>
+                    <i class="fa-solid fa-plane text-base sm:text-lg"></i>
+                    <span class="h-[1px] flex-1 border-t border-dashed border-[#f5d76e]/65"></span>
+                  </div>
+                  <span class="text-[10px] text-[#fdf6e9]/80 mt-1 italic">Vuelo directo al invierno</span>
+                </div>
+
+                <div class="text-right">
+                  <p class="text-[10px] uppercase tracking-widest text-[#f5d76e]/80 font-bold">Destino</p>
+                  <p class="font-serif-elegant text-base sm:text-xl font-extrabold text-[#f5d76e]">DOLOMITAS & MILÁN</p>
+                </div>
+              </div>
+
+              <!-- Itinerario completo -->
+              <div class="bg-[#fdf6e9]/10 border border-[#d4af37]/50 rounded-xl p-3 mb-4 text-center">
+                <p class="text-[10px] uppercase tracking-widest text-[#f5d76e] font-bold mb-1">Itinerario</p>
+                <p class="text-xs sm:text-[13px] font-bold text-[#fdf6e9] leading-relaxed">
+                  Covelo • Bolzano • Bressanone • Vipiteno • Ortisei • Val Gardena • Sirmione • Milán
+                </p>
+              </div>
+
+              <!-- Línea troquelada -->
+              <div class="border-t-2 border-dashed border-[#d4af37]/50 my-4"></div>
+
+              <!-- Datos del billete -->
+              <div class="grid grid-cols-2 gap-3.5 text-xs">
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-[#f5d76e]/80 font-bold">Pasajeros</p>
+                  <p class="font-serif-elegant font-bold text-sm sm:text-base text-white">Álex & Silvia</p>
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-[#f5d76e]/80 font-bold">Fechas</p>
+                  <p class="font-bold text-xs sm:text-sm text-[#f5d76e]">30 DIC 2026 – 03 ENE 2027</p>
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-[#f5d76e]/80 font-bold">Asiento</p>
+                  <p class="font-extrabold text-white tracking-wide">JUNTOS 24/7</p>
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-wider text-[#f5d76e]/80 font-bold">Estado</p>
+                  <p class="font-extrabold text-[#f5d76e]">CONFIRMADO ❤️</p>
+                </div>
+              </div>
+
+              <!-- Código de barras decorativo -->
+              <div class="mt-5 pt-3 border-t border-[#d4af37]/30 flex flex-col items-center gap-1.5">
+                <div class="w-full h-9 rounded bg-[#fdf6e9] px-3 py-1.5 flex items-center justify-center overflow-hidden">
+                  <div class="flex items-stretch h-full gap-[2px] justify-center">
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[4px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[5px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[4px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[5px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[4px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[4px] bg-[#2a080c]"></span>
+                    <span class="w-[1px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                    <span class="w-[2px] bg-[#2a080c]"></span>
+                    <span class="w-[3px] bg-[#2a080c]"></span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-mono tracking-[0.22em] text-[#f5d76e]/85">ALEX-SILVIA • 30122026 • DOLOMITAS-MILAN</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Botón rápido de edición en el modal si está el Modo Admin activo
+      const modalEditBtn = document.getElementById("modal-admin-edit-btn");
+      if (isAdminMode) {
+        modalEditBtn.classList.remove("hidden");
+        modalEditBtn.onclick = () => {
+          closeSurpriseModal();
+          openAdminEditor(dayNumber);
+        };
+      } else {
+        modalEditBtn.classList.add("hidden");
+      }
+
+      const modal = document.getElementById("surprise-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function renderPackingChecklist(items) {
+      const container = document.getElementById("maleta-checklist-items");
+      const progressBadge = document.getElementById("checklist-progress-badge");
+      if (!container) return;
+
+      container.innerHTML = "";
+      let checkedCount = 0;
+
+      items.forEach((label, idx) => {
+        const key = `maleta_${idx}_${label}`;
+        const isChecked = Boolean(checklistChecked[key]);
+        if (isChecked) checkedCount++;
+
+        const row = document.createElement("label");
+        row.className = `flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition border ${
+          isChecked
+            ? "bg-[#0f2d1e]/15 border-[#0f2d1e]/40 text-[#0f2d1e]"
+            : "bg-white/80 border-[#d4af37]/45 text-[#351115] hover:bg-white"
+        }`;
+
+        row.innerHTML = `
+          <input type="checkbox" ${isChecked ? "checked" : ""} class="w-4 h-4 accent-[#0f2d1e] rounded cursor-pointer" />
+          <span class="text-sm font-semibold ${isChecked ? "line-through opacity-75" : ""}">${escapeHtml(label)}</span>
+        `;
+
+        row.querySelector("input").addEventListener("change", (e) => {
+          checklistChecked[key] = e.target.checked;
+          persistProgressLocal();
+          renderPackingChecklist(items);
+        });
+
+        container.appendChild(row);
+      });
+
+      if (progressBadge) {
+        progressBadge.textContent = `${checkedCount} / ${items.length} listo`;
+      }
+    }
+
+    function closeSurpriseModal() {
+      const modal = document.getElementById("surprise-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    // =========================================================================
+    // 8. ACCESO ADMINISTRADOR CON PIN (7744) — SIN SERVICIOS EXTERNOS
+    // =========================================================================
+    function openPinModal() {
+      if (isAdminMode) {
+        showToast("Ya estás en Modo Administrador 👑", "info");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      const input = document.getElementById("admin-pin-input");
+      const errorMsg = document.getElementById("pin-error-msg");
+      input.value = "";
+      errorMsg.classList.add("hidden");
+
+      const modal = document.getElementById("pin-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      setTimeout(() => input.focus(), 80);
+    }
+
+    function closePinModal() {
+      const modal = document.getElementById("pin-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function verifyAdminPin(event) {
+      event.preventDefault();
+      const input = document.getElementById("admin-pin-input");
+      const errorMsg = document.getElementById("pin-error-msg");
+      const box = document.getElementById("pin-modal-box");
+      const entered = (input.value || "").trim();
+
+      if (entered === ADMIN_PIN) {
+        isAdminMode = true;
+        closePinModal();
+        updateAdminUI();
+        renderCalendar();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        showToast("¡Bienvenido, Álex! Modo Administrador activado 👑", "success");
+      } else {
+        errorMsg.classList.remove("hidden");
+        box.classList.remove("shake-anim");
+        void box.offsetWidth;
+        box.classList.add("shake-anim");
+        input.value = "";
+        input.focus();
+      }
+    }
+
+    function exitAdminMode() {
+      isAdminMode = false;
+      previewModeEnabled = false;
+      const toggle = document.getElementById("preview-mode-toggle");
+      if (toggle) toggle.checked = false;
+
+      updateAdminUI();
+      renderCalendar();
+      showToast("Has salido del Modo Administrador.", "info");
+    }
+
+    function updateAdminUI() {
+      const banner = document.getElementById("admin-banner");
+      const heroBtn = document.getElementById("hero-quick-upload-btn");
+
+      if (isAdminMode) {
+        banner.classList.remove("hidden");
+        heroBtn.classList.remove("hidden");
+      } else {
+        banner.classList.add("hidden");
+        heroBtn.classList.add("hidden");
+      }
+      updateFallbackAdminNoteVisibility();
+    }
+
+    // Interruptor de Modo Vista Previa
+    document.getElementById("preview-mode-toggle").addEventListener("change", (e) => {
+      if (!isAdminMode) {
+        e.target.checked = false;
+        return;
+      }
+      previewModeEnabled = e.target.checked;
+      renderCalendar();
+      showToast(
+        previewModeEnabled
+          ? "Modo Vista Previa ACTIVADO: ya puedes abrir y probar las 24 casillas ✨"
+          : "Modo Vista Previa DESACTIVADO: vuelve el bloqueo por fecha real.",
+        "info"
+      );
+    });
+
+    // =========================================================================
+    // 9. EDITOR DE DÍAS (MODO ADMIN)
+    // =========================================================================
+    function openDaySelectorModal() {
+      if (!isAdminMode) return;
+      const list = document.getElementById("admin-days-list");
+      list.innerHTML = "";
+
+      daysData.forEach((item) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "flex items-center justify-between gap-2 text-left p-3 rounded-xl bg-white/5 hover:bg-white/15 border border-[#d4af37]/30 transition";
+        btn.innerHTML = `
+          <div class="min-w-0">
+            <span class="text-xs font-extrabold text-[#f5d76e]">Día ${item.day}</span>
+            <p class="text-xs text-[#fdf6e9]/85 truncate">${escapeHtml(item.tag)}</p>
+          </div>
+          <i class="fa-solid fa-pen text-[#d4af37] text-xs shrink-0"></i>
+        `;
+        btn.addEventListener("click", () => {
+          closeDaySelectorModal();
+          openAdminEditor(item.day);
+        });
+        list.appendChild(btn);
+      });
+
+      const modal = document.getElementById("admin-selector-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeDaySelectorModal() {
+      const modal = document.getElementById("admin-selector-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function openAdminEditor(dayNumber) {
+      if (!isAdminMode) return;
+      editingDayNumber = dayNumber;
+      const item = daysData.find((d) => d.day === dayNumber);
+      if (!item) return;
+
+      document.getElementById("editor-modal-title").textContent = `Editar Día ${dayNumber}`;
+      document.getElementById("editor-day-tag").value = item.tag || "";
+      document.getElementById("editor-day-content").value = item.content || "";
+
+      // Campos de canción para el Día 4
+      const songWrap = document.getElementById("editor-song-wrapper");
+      if (dayNumber === 4 || item.isMusic) {
+        songWrap.classList.remove("hidden");
+        document.getElementById("editor-day-song-title").value = item.songTitle || "";
+        document.getElementById("editor-day-spotify").value = item.spotifyUrl || "";
+        document.getElementById("editor-day-youtube").value = item.youtubeUrl || "";
+      } else {
+        songWrap.classList.add("hidden");
+      }
+
+      // Campo checklist de la maleta para el Día 22
+      const checkWrap = document.getElementById("editor-checklist-wrapper");
+      if (dayNumber === 22 || item.isChecklist) {
+        checkWrap.classList.remove("hidden");
+        document.getElementById("editor-day-checklist").value = (item.checklistItems || []).join("\n");
+      } else {
+        checkWrap.classList.add("hidden");
+      }
+
+      const modal = document.getElementById("admin-editor-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeAdminEditor() {
+      editingDayNumber = null;
+      const modal = document.getElementById("admin-editor-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function saveAdminDayEdit() {
+      if (!isAdminMode || !editingDayNumber) return;
+      const idx = daysData.findIndex((d) => d.day === editingDayNumber);
+      if (idx === -1) return;
+
+      const newTag = document.getElementById("editor-day-tag").value.trim();
+      const newContent = document.getElementById("editor-day-content").value;
+
+      daysData[idx].tag = newTag || daysData[idx].tag;
+      daysData[idx].content = newContent;
+
+      if (editingDayNumber === 4 || daysData[idx].isMusic) {
+        daysData[idx].songTitle = document.getElementById("editor-day-song-title").value.trim() || "Mil vidas - Morad";
+        daysData[idx].spotifyUrl = document.getElementById("editor-day-spotify").value.trim();
+        daysData[idx].youtubeUrl = document.getElementById("editor-day-youtube").value.trim();
+      }
+
+      if (editingDayNumber === 22 || daysData[idx].isChecklist) {
+        const lines = document.getElementById("editor-day-checklist").value
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+        daysData[idx].checklistItems = lines;
+      }
+
+      persistDaysLocal();
+      renderCalendar();
+      closeAdminEditor();
+      showToast(`Día ${editingDayNumber} guardado correctamente ✨`, "success");
+    }
+
+    function resetSingleDayToDefault() {
+      if (!isAdminMode || !editingDayNumber) return;
+      const def = DEFAULT_DAYS.find((d) => d.day === editingDayNumber);
+      if (!def) return;
+
+      document.getElementById("editor-day-tag").value = def.tag;
+      document.getElementById("editor-day-content").value = def.content;
+      if (def.isMusic) {
+        document.getElementById("editor-day-song-title").value = def.songTitle || "";
+        document.getElementById("editor-day-spotify").value = def.spotifyUrl || "";
+        document.getElementById("editor-day-youtube").value = def.youtubeUrl || "";
+      }
+      if (def.checklistItems) {
+        document.getElementById("editor-day-checklist").value = def.checklistItems.join("\n");
+      }
+      showToast("Campos restaurados al texto original (pulsa Guardar para aplicar).", "info");
+    }
+
+    // =========================================================================
+    // 10. DESCARGAR HTML ACTUALIZADO CON TEXTOS, MALETA Y FOTO EN BASE64
+    // =========================================================================
+    function downloadUpdatedHtml() {
+      if (!isAdminMode) return;
+
+      try {
+        // Clonamos el documento entero para generar una copia limpia con el Modo Admin cerrado
+        const clonedDoc = document.documentElement.cloneNode(true);
+
+        // 1. Ocultar barra admin, botones admin y modales abiertos en el archivo exportado
+        const idsToHide = [
+          "admin-banner",
+          "hero-quick-upload-btn",
+          "fallback-admin-note",
+          "surprise-modal",
+          "pin-modal",
+          "admin-selector-modal",
+          "admin-editor-modal"
+        ];
+        idsToHide.forEach((id) => {
+          const el = clonedDoc.querySelector(`#${id}`);
+          if (el) {
+            el.classList.add("hidden");
+            el.classList.remove("flex");
+          }
+        });
+
+        // 2. Desmarcar el interruptor de vista previa en el clon
+        const clonedToggle = clonedDoc.querySelector("#preview-mode-toggle");
+        if (clonedToggle) clonedToggle.removeAttribute("checked");
+
+        // 3. Limpiar contenedores dinámicos para que se rendericen frescos al abrirlo Silvia
+        const idsToClear = [
+          "toast-container",
+          "calendar-grid",
+          "countdown-christmas",
+          "countdown-dolomites",
+          "modal-body-container",
+          "modal-extra-container",
+          "admin-days-list"
+        ];
+        idsToClear.forEach((id) => {
+          const el = clonedDoc.querySelector(`#${id}`);
+          if (el) el.innerHTML = "";
+        });
+
+        // 4. Asegurar que la imagen de portada del clon apunte a la foto guardada (o al nombre por defecto)
+        const clonedImg = clonedDoc.querySelector("#hero-cover-image");
+        const clonedFallback = clonedDoc.querySelector("#hero-cover-fallback");
+        if (clonedImg) {
+          clonedImg.setAttribute("src", customCoverDataUrl || DEFAULT_COVER_SRC);
+          clonedImg.classList.remove("hidden");
+        }
+        if (clonedFallback) {
+          clonedFallback.classList.add("hidden");
+        }
+
+        // 5. Incrustar todos los cambios (días, canción, lista maleta y portada Base64) en el JSON del HTML
+        const embeddedPayload = {
+          exportedAt: Date.now(),
+          customCover: customCoverDataUrl || null,
+          days: daysData
+        };
+        const safeJson = JSON.stringify(embeddedPayload).replace(/<\/script>/gi, "<\\/script>");
+        const clonedConfig = clonedDoc.querySelector("#embedded-calendar-config");
+        if (clonedConfig) {
+          clonedConfig.textContent = "\n" + safeJson + "\n";
+        }
+
+        // 6. Construir el archivo HTML final y disparar la descarga
+        const finalHtml = "<!DOCTYPE html>\n" + clonedDoc.outerHTML;
+        const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "calendario_adviento_silvia.html";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+        showToast("¡Archivo calendario_adviento_silvia.html descargado y listo para Silvia! 💾🎁", "success");
+      } catch (err) {
+        console.error("Error al exportar el HTML:", err);
+        showToast("No se pudo generar el archivo HTML. Inténtalo de nuevo.", "error");
+      }
+    }
+
+    // =========================================================================
+    // 11. UTILIDADES: ESCAPE, TOASTS, NIEVE SUAVE Y CONFETI DORADO
+    // =========================================================================
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text || "";
+      return div.innerHTML;
+    }
+
+    function escapeAttr(url) {
+      return String(url || "").replace(/"/g, "&quot;");
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      const styles = {
+        lock: "bg-[#4a0e17]/95 border-[#d4af37] text-[#fdf6e9]",
+        success: "bg-[#0f2d1e]/95 border-[#34d399] text-[#fdf6e9]",
+        error: "bg-[#6b111b]/95 border-[#f87171] text-[#fdf6e9]",
+        info: "bg-[#2a080c]/95 border-[#f5d76e] text-[#fdf6e9]"
+      };
+      const icons = {
+        lock: "fa-lock text-[#f5d76e]",
+        success: "fa-circle-check text-[#34d399]",
+        error: "fa-circle-exclamation text-[#f87171]",
+        info: "fa-snowflake text-[#f5d76e]"
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border-2 shadow-2xl backdrop-blur-md text-xs sm:text-sm font-bold transition-all duration-300 ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icons[type] || icons.info} text-base shrink-0"></i>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "-translate-y-2");
+        setTimeout(() => toast.remove(), 300);
+      }, 3400);
+    }
+
+    // Animación sutil de copos de nieve cayendo
+    function initSnowfall() {
+      const canvas = document.getElementById("snow-canvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      window.addEventListener("resize", () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const flakeCount = Math.min(85, Math.max(36, Math.floor(width / 16)));
+      const flakes = Array.from({ length: flakeCount }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2.5 + 0.9,
+        speedY: Math.random() * 0.8 + 0.3,
+        speedX: Math.random() * 0.4 - 0.2,
+        opacity: Math.random() * 0.6 + 0.22
+      }));
+
+      function drawSnow() {
+        ctx.clearRect(0, 0, width, height);
+        for (const f of flakes) {
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(253, 246, 233, ${f.opacity})`;
+          ctx.fill();
+
+          f.y += f.speedY;
+          f.x += f.speedX + Math.sin(f.y * 0.012) * 0.22;
+
+          if (f.y > height + 4) {
+            f.y = -5;
+            f.x = Math.random() * width;
+          }
+          if (f.x > width) f.x = 0;
+          if (f.x < 0) f.x = width;
+        }
+        requestAnimationFrame(drawSnow);
+      }
+      drawSnow();
+    }
+
+    // Explosión elegante de confeti y destellos dorados al abrir una puerta
+    let confettiParticles = [];
+    let confettiRunning = false;
+
+    function launchGoldenConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ["#f5d76e", "#d4af37", "#fff4c2", "#fdf6e9", "#e05263"];
+      const cx = canvas.width / 2;
+      const cy = canvas.height * 0.42;
+
+      for (let i = 0; i < 65; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 7 + 2.5;
+        confettiParticles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3.2,
+          size: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 12,
+          alpha: 1,
+          isStar: Math.random() > 0.55
+        });
+      }
+
+      if (!confettiRunning) {
+        confettiRunning = true;
+        animateConfetti(canvas, ctx);
+      }
+    }
+
+    function animateConfetti(canvas, ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = confettiParticles.length - 1; i >= 0; i--) {
+        const p = confettiParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.16; // gravedad suave
+        p.vx *= 0.99;
+        p.rotation += p.vRot;
+        p.alpha -= 0.015;
+
+        if (p.alpha <= 0) {
+          confettiParticles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+
+        if (p.isStar) {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.65);
+        }
+        ctx.restore();
+      }
+
+      if (confettiParticles.length > 0) {
+        requestAnimationFrame(() => animateConfetti(canvas, ctx));
+      } else {
+        confettiRunning = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Cerrar modales con tecla Escape o haciendo clic fuera
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeSurpriseModal();
+        closePinModal();
+        closeDaySelectorModal();
+        closeAdminEditor();
+      }
+    });
+
+    ["surprise-modal", "pin-modal", "admin-selector-modal", "admin-editor-modal"].forEach((id) => {
+      document.getElementById(id).addEventListener("click", (e) => {
+        if (e.target.id === id) {
+          if (id === "surprise-modal") closeSurpriseModal();
+          if (id === "pin-modal") closePinModal();
+          if (id === "admin-selector-modal") closeDaySelectorModal();
+          if (id === "admin-editor-modal") closeAdminEditor();
+        }
+      });
+    });
+
+    // =========================================================================
+    // 12. ARRANQUE DE LA APLICACIÓN
+    // =========================================================================
+    window.addEventListener("load", () => {
+      loadInitialState();
+      updateCurrentDateLabel();
+      updateCountdowns();
+      setInterval(updateCountdowns, 1000);
+      renderCalendar();
+      initSnowfall();
+    });
+  </script>
+</body>
+</html>
