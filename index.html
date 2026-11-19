@@ -2311,5 +2311,355 @@ Guantes, gorro y bufanda"></textarea>
   })();
 </script>
 
+<!-- ===================================================================== -->
+<!-- SINCRONIZACIÓN AUTOMÁTICA CON GITHUB (config.json vía API de GitHub)  -->
+<!-- ===================================================================== -->
+<div id="gh-token-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+  <div class="w-full max-w-md rounded-2xl bg-gradient-to-b from-[#33090f] to-[#1a090b] border-2 border-[#d4af37] p-6 shadow-2xl text-[#fdf6e9]">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-serif-elegant text-xl font-bold text-[#f5d76e]">🔑 Conectar con GitHub</h3>
+      <button type="button" onclick="closeGhTokenModal()" class="text-[#fdf6e9]/70 hover:text-white text-xl leading-none">&times;</button>
+    </div>
+    <p class="text-xs text-[#fdf6e9]/80 leading-relaxed mb-4">
+      Pega tu <strong>Fine-grained Token</strong> (con permiso <em>Contents: Read &amp; write</em> solo para <code>adviento-silvia</code>). Se guarda únicamente en este navegador, nunca en el código público.
+    </p>
+    <input
+      type="password"
+      id="gh-token-input"
+      placeholder="github_pat_..."
+      autocomplete="off"
+      class="w-full rounded-xl bg-black/50 border border-[#d4af37]/60 px-3.5 py-2.5 text-sm text-[#fdf6e9] focus:outline-none focus:border-[#f5d76e] mb-3"
+    />
+    <p id="gh-token-status" class="text-[11px] text-[#f5d76e]/80 mb-4"></p>
+    <div class="flex items-center justify-end gap-2">
+      <button type="button" onclick="clearGhToken()" class="text-xs px-3 py-2 rounded-full border border-white/20 text-[#fdf6e9]/75 hover:text-white hover:bg-white/10 transition">
+        Borrar token
+      </button>
+      <button type="button" onclick="saveGhToken()" class="text-xs px-4 py-2 rounded-full bg-gradient-to-r from-[#d4af37] to-[#f5d76e] text-[#2a080c] font-extrabold hover:brightness-110 transition">
+        Guardar y conectar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script id="advent-github-sync">
+  (function () {
+    const GH_OWNER = 'alexmurub-ai';
+    const GH_REPO = 'adviento-silvia';
+    const GH_BRANCH = 'main';
+    const GH_FILE = 'config.json';
+
+    const TOKEN_KEY = 'gh_sync_token';
+    const LAST_PUSH_KEY = 'gh_sync_last_pushed';
+    let isSyncing = false;
+
+    function notify(msg, type) {
+      if (typeof showToast === 'function') {
+        showToast(msg, type || 'info');
+      } else {
+        console.log('[GitHub Sync]', msg);
+      }
+    }
+
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    function readEmbeddedConfig() {
+      const el = document.getElementById('embedded-calendar-config');
+      if (!el) return { exportedAt: 0, customCover: null, days: [] };
+      try {
+        return JSON.parse(el.textContent);
+      } catch (e) {
+        return { exportedAt: 0, customCover: null, days: [] };
+      }
+    }
+
+    // Recopila los textos y portada actuales (combinando HTML base + cambios locales en el navegador)
+    function collectCurrentConfig() {
+      const base = readEmbeddedConfig();
+      let days = Array.isArray(base.days) ? base.days : [];
+      let customCover = base.customCover || null;
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || k.startsWith('gh_sync_')) continue;
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+
+        if (raw.startsWith('data:image/')) {
+          customCover = raw;
+          continue;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length === 24 && parsed[0] && parsed[0].day === 1) {
+            days = parsed;
+          } else if (parsed && typeof parsed === 'object') {
+            if (Array.isArray(parsed.days) && parsed.days.length === 24) {
+              days = parsed.days;
+            }
+            if (typeof parsed.customCover === 'string' && parsed.customCover.startsWith('data:image/')) {
+              customCover = parsed.customCover;
+            }
+          }
+        } catch (e) {}
+      }
+
+      const heroImg = document.getElementById('hero-cover-image');
+      if (heroImg && heroImg.src && heroImg.src.startsWith('data:image/')) {
+        customCover = heroImg.src;
+      }
+
+      return {
+        exportedAt: Date.now(),
+        customCover: customCover,
+        days: days
+      };
+    }
+
+    // Limpia solo claves antiguas de contenido/portada en localStorage (mantiene intactas puertas abiertas y checklist)
+    function clearStaleLocalContent() {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || k.startsWith('gh_sync_')) continue;
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        if (raw.startsWith('data:image/')) {
+          keysToRemove.push(k);
+          continue;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (
+            (Array.isArray(parsed) && parsed.length === 24 && parsed[0] && parsed[0].day === 1) ||
+            (parsed && typeof parsed === 'object' && Array.isArray(parsed.days) && parsed.days.length === 24)
+          ) {
+            keysToRemove.push(k);
+          }
+        } catch (e) {}
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    }
+
+    // 1. Al cargar la web: lee config.json desde GitHub Pages para que Silvia vea siempre la última versión
+    async function loadRemoteConfig() {
+      try {
+        const res = await fetch('./' + GH_FILE + '?t=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const remote = await res.json();
+        if (!remote || !Array.isArray(remote.days) || remote.days.length !== 24) return;
+
+        // Si acabas de guardar hace menos de 90 s desde este dispositivo, espera a que GitHub Pages refresque
+        const lastPushed = Number(localStorage.getItem(LAST_PUSH_KEY) || 0);
+        if (lastPushed > (remote.exportedAt || 0) && (Date.now() - lastPushed) < 120000) {
+          return;
+        }
+
+        const embeddedEl = document.getElementById('embedded-calendar-config');
+        if (embeddedEl) {
+          embeddedEl.textContent = JSON.stringify(remote);
+        }
+
+        clearStaleLocalContent();
+
+        if (typeof loadInitialState === 'function') loadInitialState();
+        if (typeof renderCalendar === 'function') renderCalendar();
+
+        if (remote.customCover) {
+          const heroImg = document.getElementById('hero-cover-image');
+          if (heroImg) heroImg.src = remote.customCover;
+        }
+      } catch (e) {
+        // Si config.json todavía no existe, usa la configuración incrustada sin mostrar error
+      }
+    }
+
+    // 2. Sube los cambios automáticamente a config.json usando la API de GitHub
+    async function publishConfigToGitHub(silentIfNoToken) {
+      const token = (localStorage.getItem(TOKEN_KEY) || '').trim();
+      if (!token) {
+        if (!silentIfNoToken) {
+          openGhTokenModal();
+          notify('Primero pega tu token de GitHub para activar el guardado automático.', 'warning');
+        }
+        return;
+      }
+      if (isSyncing) return;
+      isSyncing = true;
+
+      const syncBtn = document.getElementById('gh-publish-btn');
+      const originalHtml = syncBtn ? syncBtn.innerHTML : '';
+      if (syncBtn) {
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1"></i> Guardando en GitHub...';
+      }
+
+      try {
+        const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        };
+
+        // Consultar SHA actual de config.json (si ya existe)
+        let currentSha = undefined;
+        const getRes = await fetch(`${apiUrl}?ref=${GH_BRANCH}&t=${Date.now()}`, { headers, cache: 'no-store' });
+        if (getRes.ok) {
+          const fileInfo = await getRes.json();
+          currentSha = fileInfo.sha;
+        } else if (getRes.status === 401 || getRes.status === 403) {
+          throw new Error('Token inválido o sin permiso "Contents: Read and write" en adviento-silvia.');
+        }
+
+        const payloadData = collectCurrentConfig();
+        const jsonString = JSON.stringify(payloadData, null, 2);
+
+        const body = {
+          message: 'Actualizar calendario desde Modo Admin',
+          content: utf8ToBase64(jsonString),
+          branch: GH_BRANCH
+        };
+        if (currentSha) body.sha = currentSha;
+
+        const putRes = await fetch(apiUrl, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(body)
+        });
+
+        if (!putRes.ok) {
+          const errData = await putRes.json().catch(() => ({}));
+          throw new Error(errData.message || `Error ${putRes.status} al guardar en GitHub`);
+        }
+
+        localStorage.setItem(LAST_PUSH_KEY, String(payloadData.exportedAt));
+        const embeddedEl = document.getElementById('embedded-calendar-config');
+        if (embeddedEl) embeddedEl.textContent = JSON.stringify(payloadData);
+
+        notify('✅ ¡Guardado en GitHub! En 1 minuto lo verá Silvia actualizado.', 'success');
+      } catch (err) {
+        notify('❌ Error GitHub: ' + err.message, 'error');
+      } finally {
+        isSyncing = false;
+        if (syncBtn) {
+          syncBtn.disabled = false;
+          syncBtn.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    // 3. Añade los botones "Publicar en GitHub" y "Token GitHub" en tu barra de Admin
+    function injectAdminSyncButtons() {
+      const dlBtn = document.querySelector('#admin-banner button[onclick*="downloadUpdatedHtml"]');
+      if (!dlBtn || document.getElementById('gh-publish-btn')) return;
+
+      const publishBtn = document.createElement('button');
+      publishBtn.id = 'gh-publish-btn';
+      publishBtn.type = 'button';
+      publishBtn.className = 'text-xs bg-gradient-to-r from-[#16442e] to-[#0f2d1e] hover:brightness-125 text-[#f5d76e] border border-[#f5d76e]/70 rounded-full px-3.5 py-1.5 font-extrabold transition shadow-lg';
+      publishBtn.innerHTML = '☁️ Publicar en GitHub';
+      publishBtn.addEventListener('click', () => publishConfigToGitHub(false));
+
+      const tokenBtn = document.createElement('button');
+      tokenBtn.id = 'gh-token-btn';
+      tokenBtn.type = 'button';
+      tokenBtn.className = 'text-xs bg-black/50 hover:bg-black/75 text-[#f5d76e] border border-[#d4af37]/50 rounded-full px-3 py-1.5 font-bold transition';
+      tokenBtn.innerHTML = localStorage.getItem(TOKEN_KEY) ? '🔑 GitHub Conectado' : '🔑 Conectar GitHub';
+      tokenBtn.addEventListener('click', openGhTokenModal);
+
+      dlBtn.parentElement.insertBefore(publishBtn, dlBtn);
+      dlBtn.parentElement.insertBefore(tokenBtn, dlBtn);
+    }
+
+    // 4. Sincronización automática al guardar un día o cambiar la foto de portada
+    function attachAutoSyncHooks() {
+      const editorModal = document.getElementById('admin-editor-modal');
+      if (editorModal) {
+        editorModal.addEventListener('submit', () => {
+          setTimeout(() => publishConfigToGitHub(true), 350);
+        });
+        editorModal.addEventListener('click', (e) => {
+          const btn = e.target.closest('button');
+          if (!btn) return;
+          const txt = (btn.textContent || '').toLowerCase();
+          if (txt.includes('guardar')) {
+            setTimeout(() => publishConfigToGitHub(true), 350);
+          }
+        });
+      }
+
+      const coverInput = document.getElementById('cover-photo-input');
+      if (coverInput) {
+        coverInput.addEventListener('change', () => {
+          setTimeout(() => publishConfigToGitHub(true), 900);
+        });
+      }
+    }
+
+    // Funciones del modal del token
+    window.openGhTokenModal = function () {
+      const modal = document.getElementById('gh-token-modal');
+      const input = document.getElementById('gh-token-input');
+      const status = document.getElementById('gh-token-status');
+      const saved = localStorage.getItem(TOKEN_KEY);
+      if (input) input.value = saved || '';
+      if (status) {
+        status.textContent = saved
+          ? 'Estado: Token guardado en este dispositivo (guardado automático activo).'
+          : 'Estado: Todavía no has pegado ningún token en este navegador.';
+      }
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    };
+
+    window.closeGhTokenModal = function () {
+      const modal = document.getElementById('gh-token-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    };
+
+    window.saveGhToken = function () {
+      const input = document.getElementById('gh-token-input');
+      const val = (input ? input.value : '').trim();
+      if (!val) {
+        notify('Pega un token válido antes de guardar.', 'warning');
+        return;
+      }
+      localStorage.setItem(TOKEN_KEY, val);
+      const tokenBtn = document.getElementById('gh-token-btn');
+      if (tokenBtn) tokenBtn.innerHTML = '🔑 GitHub Conectado';
+      closeGhTokenModal();
+      notify('🔑 Token guardado. Publicando primera copia en GitHub...', 'success');
+      publishConfigToGitHub(false);
+    };
+
+    window.clearGhToken = function () {
+      localStorage.removeItem(TOKEN_KEY);
+      const tokenBtn = document.getElementById('gh-token-btn');
+      if (tokenBtn) tokenBtn.innerHTML = '🔑 Conectar GitHub';
+      closeGhTokenModal();
+      notify('Token eliminado de este navegador.', 'info');
+    };
+
+    window.addEventListener('load', () => {
+      injectAdminSyncButtons();
+      attachAutoSyncHooks();
+      loadRemoteConfig();
+    });
+  })();
+</script>  
 
 </body></html>
